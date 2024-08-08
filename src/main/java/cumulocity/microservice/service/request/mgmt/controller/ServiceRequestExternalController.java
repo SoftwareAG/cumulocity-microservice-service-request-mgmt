@@ -1,5 +1,7 @@
 package cumulocity.microservice.service.request.mgmt.controller;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -57,8 +59,18 @@ public class ServiceRequestExternalController {
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", description = "OK") })
 	@GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<Collection<ServiceRequest>> getServiceRequestList(@Parameter(in = ParameterIn.QUERY, description = "filter, \"true\" returns all service request with external Id assigned, \"false\" returns service requests which doesn't have external Id assigned." , schema = @Schema()) @Valid @RequestParam(value = "assigned", required = false) Boolean assigned) {
-		Collection<ServiceRequest> serviceRequestList = serviceRequestService.getAllServiceRequestBySyncStatus(assigned);
+	public ResponseEntity<Collection<ServiceRequest>> getServiceRequestList(
+		@Parameter(in = ParameterIn.QUERY, description = "Filter, \"true\" returns all service request with external Id assigned, \"false\" returns service requests which doesn't have external Id assigned." , schema = @Schema()) @Valid @RequestParam(value = "assigned", required = true) Boolean assigned,
+		@Parameter(in = ParameterIn.QUERY, description = "Filter by service request IDs, returns all service requests with the IDs defined in that list", schema = @Schema()) @Valid @RequestParam(value = "serviceRequestIds", required = false) String[] serviceRequestIds) {
+		
+		Collection<ServiceRequest> serviceRequestList = new ArrayList<>();
+		
+		if(serviceRequestIds != null && serviceRequestIds.length > 0) {
+			serviceRequestList = serviceRequestService.getAllServiceRequestBySyncStatus(assigned, serviceRequestIds);
+		}else{
+			serviceRequestList = serviceRequestService.getAllServiceRequestBySyncStatus(assigned);
+		}
+
 		return new ResponseEntity<Collection<ServiceRequest>>(serviceRequestList, HttpStatus.OK);
 	}
 	

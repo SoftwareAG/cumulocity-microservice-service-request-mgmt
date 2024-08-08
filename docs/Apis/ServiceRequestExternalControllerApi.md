@@ -39,7 +39,7 @@ No authorization required
 
 <a name="getServiceRequestList1"></a>
 # **getServiceRequestList1**
-> List getServiceRequestList1(assigned)
+> List getServiceRequestList1(assigned, statusList)
 
 GET service request list
 
@@ -49,7 +49,8 @@ GET service request list
 
 |Name | Type | Description  | Notes |
 |------------- | ------------- | ------------- | -------------|
-| **assigned** | **Boolean**| filter, \&quot;true\&quot; returns all service request with external Id assigned, \&quot;false\&quot; returns service requests which doesn&#39;t have external Id assigned. | [optional] [default to null] |
+| **assigned** | **Boolean**| Filter, \&quot;true\&quot; returns all service request with external Id assigned, \&quot;false\&quot; returns service requests which doesn&#39;t have external Id assigned. | [default to null] |
+| **statusList** | [**List**](../Models/String.md)| Filter by service request IDs, returns all service requests with the IDs defined in that list | [optional] [default to null] |
 
 ### Return type
 

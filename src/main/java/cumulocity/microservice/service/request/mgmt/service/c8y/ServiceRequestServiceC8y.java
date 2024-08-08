@@ -407,6 +407,49 @@ public class ServiceRequestServiceC8y implements ServiceRequestService {
 	}
 
 	@Override
+	public Collection<ServiceRequest> getAllServiceRequestBySyncStatus(Boolean assigned, String[] serviceRequestIds) {
+		Set<ServiceRequest> serviceRequestList = new HashSet<ServiceRequest>();
+
+		if(serviceRequestIds == null || serviceRequestIds.length <= 0) {
+			log.warn("No service request IDs defined!");
+			return serviceRequestList;
+		}
+
+		log.info("getAllServiceRequestBySyncStatus(assigned: {}, serviceRequestIds: {})", assigned, serviceRequestIds.toString());
+		Stopwatch stopwatch = Stopwatch.createStarted();
+
+		List<EventRepresentation> events = new ArrayList<>();
+		for(String id: serviceRequestIds) {
+			try {
+				EventRepresentation event = eventApi.getEvent(GId.asGId(id));
+				events.add(event);
+			}catch(Exception e) {
+				log.error("Fetching event with id {} failed!", id);
+			}
+		}
+
+		log.debug("Events found for IDs: count= {}", events.size());
+
+		Predicate<EventRepresentation> filterPredicate;
+
+		if(assigned != null && assigned) {
+			filterPredicate = event -> event.getType().equals(ServiceRequestEventMapper.EVENT_TYPE) && event.get(ServiceRequestEventMapper.SR_SYNC_STATUS).equals(String.valueOf(SyncStatus.ACTIVE.name()));
+		}else {
+			filterPredicate = event -> event.getType().equals(ServiceRequestEventMapper.EVENT_TYPE) && event.get(ServiceRequestEventMapper.SR_SYNC_STATUS).equals(String.valueOf(SyncStatus.NEW.name()));
+		}
+
+		serviceRequestList= events.stream().filter(filterPredicate).map(event -> {
+			return ServiceRequestEventMapper.map2(event);
+		}).collect(Collectors.toSet());
+
+
+		stopwatch.stop();
+		long ms = stopwatch.elapsed(TimeUnit.MILLISECONDS);
+		log.info("getAllServiceRequestBySyncStatus(assigned: {}, serviceRequestIds: {}): return list.size {} in {} ms", assigned, serviceRequestIds, serviceRequestList.size(), ms);
+		return serviceRequestList;
+	}
+
+	@Override
 	public void deleteServiceRequest(String id) {
 		EventRepresentation eventRepresentation = new EventRepresentation();
 		eventRepresentation.setId(GId.asGId(id));
